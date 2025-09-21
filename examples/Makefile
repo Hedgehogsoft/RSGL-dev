@@ -79,6 +79,7 @@ EXAMPLE_OUTPUTS = \
 	basics/buffers \
 	basics/gl11 \
 	basics/framebuffer \
+	basics/soft \
 
 
 EXAMPLE_OUTPUTS_CUSTOM = \
