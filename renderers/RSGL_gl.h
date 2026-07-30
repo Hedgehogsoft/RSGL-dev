@@ -163,13 +163,16 @@ GLuint RSGL_GL_bufferTypeToNative(RSGL_bufferType type) {
 	switch (type) {
 		case RSGL_arrayBuffer: return GL_ARRAY_BUFFER;
 		case RSGL_elementArrayBuffer: return GL_ELEMENT_ARRAY_BUFFER;
-		#if !defined(__APPLE__)
+		#if !defined(__APPLE__) && !defined(RSGL_GLES2) && !defined(RSGL_GLES3)
 			case RSGL_shaderStorageBuffer: return GL_SHADER_STORAGE_BUFFER;
-		#endif
-		#if !defined(__APPLE__) || defined(RSGL_GLES3)
 			case RSGL_textureBuffer: return GL_TEXTURE_BUFFER;
 			case RSGL_uniformBuffer: return GL_UNIFORM_BUFFER;
+		#else
+			case RSGL_shaderStorageBuffer: RSGL_ASSERT(!"shader storage buffer is not supported");
+			case RSGL_textureBuffer: RSGL_ASSERT(!"shader texture buffer is not supported");
+			case RSGL_uniformBuffer: RSGL_ASSERT(!"uniform buffer is not supported");
 		#endif
+
 		default: break;
 	}
 
@@ -413,12 +416,20 @@ void RSGL_GL_scissorEnd(RSGL_glRenderer* ctx) {
 GLuint RSGL_GL_textureFormatToNative(RSGL_textureFormat format) {
 	switch (format) {
 		case RSGL_formatRGB: return GL_RGB;
-		case RSGL_formatBGR: return GL_BGR;
 		case RSGL_formatRGBA: return GL_RGBA;
-		case RSGL_formatBGRA: return GL_BGRA;
-		case RSGL_formatRed: return GL_RED;
-		case RSGL_formatGrayscale: return GL_RED;
-		case RSGL_formatGrayscaleAlpha: return GL_RED;
+		#if !defined(RSGL_GLES2) && !defined(RSGL_GLES3)
+			case RSGL_formatBGR: return GL_BGR;
+			case RSGL_formatBGRA: return GL_BGRA;
+			case RSGL_formatRed: return GL_RED;
+			case RSGL_formatGrayscale: return GL_RED;
+			case RSGL_formatGrayscaleAlpha: return GL_RED;
+		#else
+			case RSGL_formatBGR: RSGL_ASSERT(!"GLES does not support BGR"); break;
+			case RSGL_formatBGRA: RSGL_ASSERT(!"GLES does not support BGRA"); break;
+			case RSGL_formatRed: RSGL_ASSERT(!"GLES does not support GL RED"); break;
+			case RSGL_formatGrayscale: RSGL_ASSERT(!"GLES does not support GL RED"); break;
+			case RSGL_formatGrayscaleAlpha: RSGL_ASSERT(!"GLES does not support GL RED"); break;
+		#endif
 		default: break;
 	}
 
@@ -473,7 +484,7 @@ RSGL_texture RSGL_GL_createTexture(RSGL_glRenderer* ctx, const RSGL_textureBlob*
 	u32 textureFormat = RSGL_GL_textureFormatToNative(blob->textureFormat);
 	u32 dataType = RSGL_GL_textureDataTypeToNative(blob->dataType);
 
-#ifndef RSGL_GLES2
+#if !defined(RSGL_GLES2) && !defined(RSGL_GLES3)
 	if (blob->dataFormat == RSGL_formatGrayscale) {
 		static GLint swizzleRgbaParams[4] = { GL_RED, GL_RED, GL_RED, GL_ONE  };
 		glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleRgbaParams);
@@ -500,7 +511,7 @@ void RSGL_GL_copyToTexture(RSGL_glRenderer* ctx, RSGL_texture texture, size_t x,
 
 	u32 dataType = RSGL_GL_textureDataTypeToNative(blob->dataType);
 
-#ifndef RSGL_GLES2
+#if !defined(RSGL_GLES2) && !defined(RSGL_GLES3)
 	if (blob->dataFormat == RSGL_formatGrayscale) {
 		static GLint swizzleRgbaParams[4] = { GL_RED, GL_RED, GL_RED, GL_ONE  };
 		glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleRgbaParams);
@@ -528,12 +539,14 @@ void RSGL_opengl_getError(void) {
 		case GL_INVALID_OPERATION:
 			printf("OpenGL error: GL_INVALID_OPERATION\n");
 			break;
+		#if !defined(RSGL_GLES2) && !defined(RSGL_GLES3)
 		case GL_STACK_OVERFLOW:
 			printf("OpenGL error: GL_STACK_OVERFLOW\n");
 			break;
 		case GL_STACK_UNDERFLOW:
 			printf("OpenGL error: GL_STACK_UNDERFLOW\n");
 			break;
+		#endif
 		default:
 			printf("OpenGL error: Unknown error code 0x%x\n", err);
 			break;
