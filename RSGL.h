@@ -310,6 +310,27 @@ typedef union RSGL_projection {
 } RSGL_projection;
 
 /*
+*******
+RSGL_draw low level
+*******
+*/
+
+typedef RSGL_ENUM(i32, RSGL_drawType) {
+	RSGL_TRIANGLES = 0,
+	RSGL_POINTS = 1,
+	RSGL_LINES = 2
+};
+
+typedef struct RSGL_rawVerts {
+	RSGL_drawType type;
+	float* verts;
+	float* texCoords;
+	u16* elements;
+	size_t elmCount;
+	size_t vert_count;
+} RSGL_rawVerts;
+
+/*
 *********************
 RSGL renderer
 *********************
@@ -454,27 +475,6 @@ typedef struct RSGL_renderer {
     u16 elements[RSGL_MAX_VERTS * 6];
 	RSGL_renderBuffers buffers;
 } RSGL_renderer;
-
-/*
-*******
-RSGL_draw low level
-*******
-*/
-
-typedef RSGL_ENUM(i32, RSGL_drawType) {
-	RSGL_TRIANGLES = 0,
-	RSGL_POINTS = 1,
-	RSGL_LINES = 2
-};
-
-typedef struct RSGL_rawVerts {
-	RSGL_drawType type;
-	float* verts;
-	float* texCoords;
-	u16* elements;
-	size_t elmCount;
-	size_t vert_count;
-} RSGL_rawVerts;
 
 /*
 *******
