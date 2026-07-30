@@ -55,6 +55,11 @@ RSGLDEF void RSGL_GL_renderer_initPtr(void* loader, RSGL_glRenderer* ptr, RSGL_r
 	#endif
 #endif
 
+#ifndef RSGL_SNPRINTF
+	#include <stdio.h>
+	#define RSGL_SNPRINTF snprintf 
+#endif /* RSGL_SNPRINTF */
+
 RSGLDEF void RSGL_GL_render(RSGL_glRenderer* ctx, const RSGL_renderPass* pass);
 RSGLDEF void RSGL_GL_initPtr(RSGL_glRenderer* ctx, void* proc); /* init render backend */
 RSGLDEF void RSGL_GL_freePtr(RSGL_glRenderer* ctx); /* free render backend */
@@ -322,11 +327,20 @@ void RSGL_GL_initPtr(RSGL_glRenderer* ctx, void* proc) {
 	#else
     RSGL_UNUSED(proc);
     #endif
+
+	char buf[256];
+
+	RSGL_SNPRINTF(buf, "OpenGL Vendor: %s\n", glGetString(GL_VENDOR));
+	RSGL_debugCallback(RSGL_typeInfo, RSGL_infoBackend, buf);
+
+	RSGL_SNPRINTF(buf, "OpenGL Renderer: %s\n", glGetString(GL_RENDERER));
+	RSGL_debugCallback(RSGL_typeInfo, RSGL_infoBackend, buf);
+
+	RSGL_SNPRINTF(buf, "OpenGL Version: %s\n", glGetString(GL_VERSION));
+	RSGL_debugCallback(RSGL_typeInfo, RSGL_infoBackend, buf);
 	
-	RSGL_debugCallback(RSGL_typeInfo, RSGL_infoBackend, "OpenGL Vendor: %s\n", glGetString(GL_VENDOR));
-	RSGL_debugCallback(RSGL_typeInfo, RSGL_infoBackend, "OpenGL Renderer: %s\n", glGetString(GL_RENDERER));
-	RSGL_debugCallback(RSGL_typeInfo, RSGL_infoBackend, "OpenGL Version: %s\n", glGetString(GL_VERSION));
-	RSGL_debugCallback(RSGL_typeInfo, RSGL_infoBackend, "GLSL Version: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+	RSGL_SNPRINTF(buf, "GLSL Version: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+	RSGL_debugCallback(RSGL_typeInfo, RSGL_infoBackend, buf);
 
 #if defined(RSGL_GLES3) || defined(RSGL_GL3)
 	glGenVertexArrays(1, &ctx->vao);
@@ -525,26 +539,29 @@ void RSGL_opengl_getError(void) {
 	GLenum err;
 	while ((err = glGetError()) != GL_NO_ERROR) {
 		switch (err) {
-		case GL_INVALID_ENUM:
-			RSGL_debugCallback(RSGL_typeError, RSGL_errorBackend, "OpenGL error: GL_INVALID_ENUM\n");
-			break;
-		case GL_INVALID_VALUE:
-			RSGL_debugCallback(RSGL_typeError, RSGL_errorBackend, "OpenGL error: GL_INVALID_VALUE\n");
-			break;
-		case GL_INVALID_OPERATION:
-			RSGL_debugCallback(RSGL_typeError, RSGL_errorBackend, "OpenGL error: GL_INVALID_OPERATION\n");
-			break;
-		#if !defined(RSGL_GLES2) && !defined(RSGL_GLES3)
-		case GL_STACK_OVERFLOW:
-			RSGL_debugCallback(RSGL_typeError, RSGL_errorBackend, "OpenGL error: GL_STACK_OVERFLOW\n");
-			break;
-		case GL_STACK_UNDERFLOW:
-			RSGL_debugCallback(RSGL_typeError, RSGL_errorBackend, "OpenGL error: GL_STACK_UNDERFLOW\n");
-			break;
-		#endif
-		default:
-			RSGL_debugCallback(RSGL_typeError, RSGL_errorBackend, "OpenGL error: Unknown error code 0x%x\n", err);
-			break;
+			case GL_INVALID_ENUM:
+				RSGL_debugCallback(RSGL_typeError, RSGL_errorBackend, "OpenGL error: GL_INVALID_ENUM\n");
+				break;
+			case GL_INVALID_VALUE:
+				RSGL_debugCallback(RSGL_typeError, RSGL_errorBackend, "OpenGL error: GL_INVALID_VALUE\n");
+				break;
+			case GL_INVALID_OPERATION:
+				RSGL_debugCallback(RSGL_typeError, RSGL_errorBackend, "OpenGL error: GL_INVALID_OPERATION\n");
+				break;
+			#if !defined(RSGL_GLES2) && !defined(RSGL_GLES3)
+			case GL_STACK_OVERFLOW:
+				RSGL_debugCallback(RSGL_typeError, RSGL_errorBackend, "OpenGL error: GL_STACK_OVERFLOW\n");
+				break;
+			case GL_STACK_UNDERFLOW:
+				RSGL_debugCallback(RSGL_typeError, RSGL_errorBackend, "OpenGL error: GL_STACK_UNDERFLOW\n");
+				break;
+			#endif
+			default: {
+				char buf[256];
+				RSGL_SNPRINTF(buf, "OpenGL error: Unknown error code 0x%x\n", err);
+				RSGL_debugCallback(RSGL_typeError, RSGL_errorBackend, buf);
+				break;
+			}
 		}
 	}
 }
@@ -552,24 +569,31 @@ void RSGL_opengl_getError(void) {
 
 void RSGL_debug_shader(u32 src, const char *shader, const char *action) {
     GLint status;
+
 	if (action[0] == 'l')
 		glGetProgramiv(src, GL_LINK_STATUS, &status);
 	else
 		glGetShaderiv(src, GL_COMPILE_STATUS, &status);
 
-	if (status == GL_TRUE)
-		RSGL_debugCallback(RSGL_typeInfo, RSGL_infoShader, "%s Shader %s successfully.\n", shader, action);
-	else {
-		RSGL_debugCallback(RSGL_typeError, RSGL_errorShader, "%s Shader failed to %s.\n", shader, action);
+	char buf[256];
+
+	if (status == GL_TRUE) {
+		RSGL_SNPRINTF(buf, "%s Shader %s successfully.\n", shader, action);
+		RSGL_debugCallback(RSGL_typeInfo, RSGL_infoShader, buf);
+	} else {
+		RSGL_SNPRINTF(buf, "%s Shader failed to %s.\n", shader, action);
+		RSGL_debugCallback(RSGL_typeError, RSGL_errorShader, buf);
 
 		GLchar infoLog[512];
 		if (action[0] == 'c') {
 			glGetShaderInfoLog(src, 512, NULL, infoLog);
-			RSGL_debugCallback(RSGL_typeError, RSGL_errorShader, "%s Shader info log:\n%s\n", shader, infoLog);
+			RSGL_SNPRINTF(buf, "%s Shader info log:\n%s\n", shader, infoLog);
 		} else {
 			glGetProgramInfoLog(src, 512, NULL, infoLog);
-			RSGL_debugCallback(RSGL_typeError, RSGL_errorShader, "%s info log:\n%s\n", shader, infoLog);
+			RSGL_SNPRINTF(buf, "%s info log:\n%s\n", shader, infoLog);
 		}
+
+		RSGL_debugCallback(RSGL_typeError, RSGL_errorShader, buf);
 
 		RSGL_opengl_getError();
 	}
