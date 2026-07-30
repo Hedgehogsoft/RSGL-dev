@@ -330,16 +330,16 @@ void RSGL_GL_initPtr(RSGL_glRenderer* ctx, void* proc) {
 
 	char buf[256];
 
-	RSGL_SNPRINTF(buf, "OpenGL Vendor: %s\n", glGetString(GL_VENDOR));
+	RSGL_SNPRINTF(buf, 256, "OpenGL Vendor: %s\n", glGetString(GL_VENDOR));
 	RSGL_debugCallback(RSGL_typeInfo, RSGL_infoBackend, buf);
 
-	RSGL_SNPRINTF(buf, "OpenGL Renderer: %s\n", glGetString(GL_RENDERER));
+	RSGL_SNPRINTF(buf, 256, "OpenGL Renderer: %s\n", glGetString(GL_RENDERER));
 	RSGL_debugCallback(RSGL_typeInfo, RSGL_infoBackend, buf);
 
-	RSGL_SNPRINTF(buf, "OpenGL Version: %s\n", glGetString(GL_VERSION));
+	RSGL_SNPRINTF(buf, 256, "OpenGL Version: %s\n", glGetString(GL_VERSION));
 	RSGL_debugCallback(RSGL_typeInfo, RSGL_infoBackend, buf);
 	
-	RSGL_SNPRINTF(buf, "GLSL Version: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+	RSGL_SNPRINTF(buf, 256, "GLSL Version: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 	RSGL_debugCallback(RSGL_typeInfo, RSGL_infoBackend, buf);
 
 #if defined(RSGL_GLES3) || defined(RSGL_GL3)
@@ -558,7 +558,7 @@ void RSGL_opengl_getError(void) {
 			#endif
 			default: {
 				char buf[256];
-				RSGL_SNPRINTF(buf, "OpenGL error: Unknown error code 0x%x\n", err);
+				RSGL_SNPRINTF(buf, 256, "OpenGL error: Unknown error code 0x%x\n", err);
 				RSGL_debugCallback(RSGL_typeError, RSGL_errorBackend, buf);
 				break;
 			}
@@ -575,21 +575,21 @@ void RSGL_debug_shader(u32 src, const char *shader, const char *action) {
 	else
 		glGetShaderiv(src, GL_COMPILE_STATUS, &status);
 
-	char buf[256];
+	char buf[1024];
 
 	if (status == GL_TRUE) {
-		RSGL_SNPRINTF(buf, "%s Shader %s successfully.\n", shader, action);
+		RSGL_SNPRINTF(buf, 256, "%s Shader %s successfully.\n", shader, action);
 		RSGL_debugCallback(RSGL_typeInfo, RSGL_infoShader, buf);
 	} else {
-		RSGL_SNPRINTF(buf, "%s Shader failed to %s.\n", shader, action);
+		RSGL_SNPRINTF(buf, 256, "%s Shader failed to %s.\n", shader, action);
 		RSGL_debugCallback(RSGL_typeError, RSGL_errorShader, buf);
 
 		GLchar infoLog[512];
 		if (action[0] == 'c') {
-			glGetShaderInfoLog(src, 512, NULL, infoLog);
-			RSGL_SNPRINTF(buf, "%s Shader info log:\n%s\n", shader, infoLog);
+			glGetShaderInfoLog(src, 1024, NULL, infoLog);
+			RSGL_SNPRINTF(buf, 1024, "%s Shader info log:\n%s\n", shader, infoLog);
 		} else {
-			glGetProgramInfoLog(src, 512, NULL, infoLog);
+			glGetProgramInfoLog(src, 1024, NULL, infoLog);
 			RSGL_SNPRINTF(buf, "%s info log:\n%s\n", shader, infoLog);
 		}
 
