@@ -517,6 +517,7 @@ RSGL_debug
 */
 
 RSGLDEF RSGL_debugFunc RSGL_setDebugCallback(RSGL_debugFunc func);
+RSGLDEF void RSGL_debugCallback(RSGL_debugType type, RSGL_errorCode code, const char* msg);
 
 /*
 *********************
