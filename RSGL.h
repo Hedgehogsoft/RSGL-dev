@@ -345,7 +345,7 @@ typedef struct RSGL_programInfo {
 typedef struct RSGL_BATCH {
     size_t start, len; /* when batch starts and it's length */
     size_t elmStart, elmCount; /* when element batch starts and it's length */
-    u32 type;
+	RSGL_drawType type;
     RSGL_texture tex;
     float lineWidth;
     RSGL_mat4 matrix;
