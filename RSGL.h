@@ -751,7 +751,9 @@ RSGLDEF RSGL_mat4 RSGL_view_getMatrix(const RSGL_view* view);
 
 RSGL_debugFunc RSGL_debugCallbackSrc = NULL;
 RSGL_debugFunc RSGL_setDebugCallback(RSGL_debugFunc func) {
-	RSGL_debugCallbackSrc = func; 
+	RSGL_debugFunc prev = func;
+	RSGL_debugCallbackSrc = func;
+	return prev;
 }
 
 void RSGL_debugCallback(RSGL_debugType type, RSGL_errorCode code, const char* msg) {

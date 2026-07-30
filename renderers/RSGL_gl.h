@@ -590,7 +590,7 @@ void RSGL_debug_shader(u32 src, const char *shader, const char *action) {
 			RSGL_SNPRINTF(buf, 1024, "%s Shader info log:\n%s\n", shader, infoLog);
 		} else {
 			glGetProgramInfoLog(src, 1024, NULL, infoLog);
-			RSGL_SNPRINTF(buf, "%s info log:\n%s\n", shader, infoLog);
+			RSGL_SNPRINTF(buf, 1024, "%s info log:\n%s\n", shader, infoLog);
 		}
 
 		RSGL_debugCallback(RSGL_typeError, RSGL_errorShader, buf);
